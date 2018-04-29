@@ -12,10 +12,13 @@ import SwiftyJSON
 
 class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
     let baseURL = "https://apiv2.bitcoinaverage.com/indices/global/ticker/BTC"
-    let currencyArray = ["AUD", "BRL","CAD","CNY","EUR","GBP","HKD","IDR","ILS","INR",
-                         "JPY","MXN","NOK","NZD","PLN","RON","RUB","SEK","SGD","USD","ZAR"]
+    let currencyArray = ["AUD", "BRL", "CAD", "CNY", "EUR", "GBP", "HKD", "IDR", "ILS", "INR",
+                         "JPY", "MXN", "NOK", "NZD", "PLN", "RON", "RUB", "SEK", "SGD", "USD", "ZAR"]
+    let currencySymbols = ["$", "R$", "$", "¥", "€", "£", "$", "Rp", "₪", "₹", "¥", "$", "kr", "$",
+                           "zł", "lei", "₽", "kr", "$", "$", "R"]
     var finalURL = ""
-
+    var selectedIndex = -1
+    
     //Pre-setup IBOutlets
     @IBOutlet weak var bitcoinPriceLabel: UILabel!
     @IBOutlet weak var currencyPicker: UIPickerView!
@@ -39,20 +42,20 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        print(currencyArray[row])
-        
-        finalURL = baseURL + currencyArray[row]
+        self.selectedIndex = row
+        print(currencyArray[selectedIndex])
+        finalURL = baseURL + currencyArray[selectedIndex]
         print(finalURL)
+        self.getBitcoinData(url: finalURL)
     }
 
-    func getBitcoinData(url: String, parameters: [String : String]) {
+    func getBitcoinData(url: String) {
         Alamofire.request(url, method: .get)
             .responseJSON { response in
                 if response.result.isSuccess {
 
                     print("Sucess! Got Bitcoin data")
-                    let bitcoinJSON : JSON = JSON(response.result.value!)
-
+                    let bitcoinJSON = response.value as! Dictionary<String, Any>
                     self.updateWeatherData(json: bitcoinJSON)
 
                 } else {
@@ -63,16 +66,21 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
 
     }
 
-    func updateWeatherData(json : JSON) {
-//        if let tempResult = json["main"]["temp"].double {
-//        
-//        weatherData.temperature = Int(round(tempResult!) - 273.15)
-//        weatherData.city = json["name"].stringValue
-//        weatherData.condition = json["weather"][0]["id"].intValue
-//        weatherData.weatherIconName =    weatherData.updateWeatherIcon(condition: weatherData.condition)
-//        }
-//        
-//        updateUIWithWeatherData()
+    func updateWeatherData(json : Dictionary<String, Any>) {
+        let model = BitcoinDataModel(json)
+        print("price: " + String(model.bidPrice!))
+        self.updateUIWithBitcoinData(val: model.bidPrice)
+    }
+    
+    func updateUIWithBitcoinData(val: Double?) {
+        var price = ""
+        if let priceVal = val {
+            price = currencySymbols[self.selectedIndex] + String(priceVal)
+        } else {
+            price = "Unavailable"
+        }
+        
+        self.bitcoinPriceLabel.text = price
     }
 }
 

@@ -13,7 +13,7 @@ DerivedData/
 BitcoinTicker/ApiKeys.swift
 BitcoinTicker.xcodeproj/
 BitcoinTicker.xcworkspace/
-
+BitcoinTicker.xcodeproj
 ## Various settings
 *.pbxuser
 !default.pbxuser
